@@ -526,7 +526,89 @@ void Compare(void) // 게임이 끝나고 랭킹 수정
    fclose(r);
 }
 // 어차피 아무도 없는 곳은 NULL값이기 때문에 빈공간이나 \n조차 찍히지 않는다
+void top(int a) // 랭킹을 띄우는 함수
+{
+   Read_Rank();
+   int n, m, l;
 
+   switch(a)
+   {
+      case '1':
+         n = 0; // for문 대신 n 한 값만 있으면 된다.
+            for(m=0;m<=4;m++) // 상위권부터 printf
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '2':
+         n = 1;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '3':
+            n = 2;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '4':
+            n = 3;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '5':
+            n = 4;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      default:
+         for(n=0;n<=4;n++)
+         {
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+         }
+
+   }// switch END
+}
 int main(void)
 {
 	    int e,a;
