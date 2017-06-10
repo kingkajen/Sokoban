@@ -76,7 +76,75 @@ void save(time_t d)
 n = temp;
 fclose(out);
 }
-
+int load()
+{ 
+	FILE *in; 
+	char data; 
+	int a; 
+	int time; 
+	in = fopen("sokoban","r"); 
+	for(int i=0 ; i<10; i++) 
+	fscanf(in,"%c",&name[i]);
+	fscanf(in,"%d",&start); 
+	fscanf(in,"%d",&n); 
+	int temp = n; 
+	for(n; n < 5; n++){  
+		for(int i=0 ; i<size[n] ;i++){   
+			for(int j=0 ;j<31 ;j++){    
+				fscanf(in,"%c",&data);    
+				if(data == '\n')    
+				break;    
+				map[n][i][j] = data;      
+			}  
+			}    
+				}
+n = temp;
+fclose(in);
+}
+void replay()
+{ 
+	for(int i =1; i < size[n]; i++)  
+		for(int j=0 ; j<30; j++)  
+		map[n][i][j] = Undo[0][n][i][j];    
+}
+int read()
+{ 
+	FILE *in;    
+	char data; 
+	in = fopen("map.txt", "r");    
+	for(int n=0 ; n<5; n++){                
+		for(int i=0 ; i<30; i++){                                
+			for(int j=0 ; j<30; j++){    
+				fscanf(in,"%c",&data);                                 
+				if( data == '\n')                                      
+				break;     
+				else if ( data == 'm' && (i != 0))     
+				break;     
+				else if ( data == 'e')     
+				break;        
+				else if( data == '$')      
+					++e;     
+				else if( data == 'O'){      
+					++e;      
+					Floor[n][i][j] = 1;     
+				}
+				map[n][i][j] = data;     
+				answer[n][i][j] = data;     
+				Undo[0][n][i][j] = data;     
+				Undo[6][n][i][j] = data;     
+				}       
+				if( data == 'm' || data == 'e' )     
+				{ 	size[n] = i;      
+					break;                                    
+					
+				}            
+				}     
+				}     
+	fclose(in);
+	return e;
+}
+				
+				
 int main(void)
 {
 	    int e,a;
