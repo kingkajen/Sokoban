@@ -1,0 +1,128 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define MAX 30
+#include <termio.h>
+char map[5][MAX][MAX]={0}; // 화면에 띄우는 맵배열
+
+char Undo[7][5][MAX][MAX] = {0};// Undo[0]는 read했을때 최초의 모습유지, 나머지는 Undo명령어 위한 공간
+char answer[5][MAX][MAX] = {0}; // 상자가 'O'에 다들어간 모습
+char name[10]; // 사용자 이름 배열int Floor[5][MAX][MAX] = {0}; // 맵의 바닥이 'O'인지 아닌지 확인용 배열
+int size[5] = {0}; // 각 맵의 세로 크기
+int e=0;// 맵을 read할 때 '$'와 'O'의 개수 확인용 변수 
+int f=0;// 맵 완료(0 or 1) 변수
+int n = 0; // 맵 순서(map 0, map1...) 에대한 변수
+float rank[6] = {0}; // 한 사용자에 대하여
+float compare[6][6] = {0};
+// 한 맵에 대해서 다른 랭커들과 비교할 때
+char LIST[6][6][15] = {0};
+// 실재 랭킹 파일에는 compare이 아니라 LIST가 입력된다.
+// 이름 10자, 필수 빈칸5자, 랭킹 숫자('.'포함)5자 (999.9까지)
+// 첫번째 6은 맵의 번호, 두번째 6은 사용자(6번째가 신규 플레이어)clock_t start, end, diff;
+clock_t start, end, diff; 
+
+int main(void)
+{
+	    int e,a;
+      printf("Start...\n");
+      printf("Input name: ");
+      gets(name);
+new:
+      e = read();
+      int u=0;
+      int count=0;
+      error(e);
+play: printf("Hello %s\n\n",name);
+      for(n; n < 5; n++){  
+            for(int i=1 ; i<size[n] ;i ++){   
+                  for(int j=0 ;j<30 ; j++){   
+                  printf("%c",map[n][i][j]);   
+                  }  
+            printf("\n");  
+            }
+      Get_Clock(); 
+      int key; 
+      if(key == 'u') 
+      printf("u\n");  
+      while(1){ 
+      key = getch(); 
+      switch(key)
+      {  
+              case 'h':  
+              u = move(key,u);  
+              count = 0;  
+              if(f==1)  ++n;  
+              goto play;
+  
+              case 'j':  
+              u = move(key,u);  
+              count = 0;  
+              if(f==1)  ++n;  
+              goto play;
+              
+              case 'k':  
+              u = move(key,u);  
+              count = 0;   
+              if(f==1)  
+              ++n;  
+              goto play;
+      
+              case'l':  
+              u = move(key,u);  
+              count = 0;  
+              if(f==1)  
+              ++n;  
+              goto play;
+              
+              case 'd':  
+              printf("d\n");  
+              display();  
+              break;
+  
+              case 's':   
+              printf("s\n");  
+              save(start);  
+              break;
+  
+              case 'f':  
+              printf("f\n");  
+              load();  
+              goto play;    
+              
+              case 'e':  
+              printf("e\n");  
+              printf("S E E Y O U %s\n",name);  
+              exit(1);    
+              
+              case 'n':  
+              printf("n\n");  
+              goto new;      
+              
+              case 'r':  
+              printf("r\n");  
+              replay();  
+              goto play;
+  
+              case 'u':  
+              ++count;  
+              if(count < 6)  
+              u = undo(u);
+              else{   
+                      printf("최대 5번 사용\n");   
+                      break;  
+              }  
+              goto play;    
+              
+              case 't':  
+              printf("t");  
+              scanf("%d",&a);  
+              top(a);  
+              break;   
+      }//switch   
+      
+      }//while  
+      
+      }//for
+printf("Complete\n");
+return 0;
+}
