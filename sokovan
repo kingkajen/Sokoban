@@ -19,6 +19,7 @@ char LIST[6][6][15] = {0};
 // 이름 10자, 필수 빈칸5자, 랭킹 숫자('.'포함)5자 (999.9까지)
 // 첫번째 6은 맵의 번호, 두번째 6은 사용자(6번째가 신규 플레이어)clock_t start, end, diff;
 clock_t start, end, diff; 
+
 int getch(void) 
 {        
 	int ch;   
@@ -194,7 +195,6 @@ int finish()
 		
 		return 1;  
 }
-
 int move(int a,int u)
 
 {
