@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h> 
 #include <stdlib.h>
 #include <time.h>
 #define MAX 30
@@ -6,7 +6,7 @@
 char map[5][MAX][MAX]={0}; // 화면에 띄우는 맵배열
 char Undo[7][5][MAX][MAX] = {0};// Undo[0]는 read했을때 최초의 모습유지, 나머지는 Undo명령어 위한 공간
 char answer[5][MAX][MAX] = {0}; // 상자가 'O'에 다들어간 모습
-char name[10]; // 사용자 이름 배열int Floor[5][MAX][MAX] = {0}; // 맵의 바닥이 'O'인지 아닌지 확인용 배열
+char name[10]; // 사용자 이름 배열
 int Floor[5][MAX][MAX] = {0}; // 맵의 바닥이 'O'인지 아닌지 확인용 배열
 int size[5] = {0}; // 각 맵의 세로 크기
 int e=0;// 맵을 read할 때 '$'와 'O'의 개수 확인용 변수 
@@ -18,184 +18,193 @@ float compare[6][6] = {0};
 char LIST[6][6][15] = {0};
 // 실재 랭킹 파일에는 compare이 아니라 LIST가 입력된다.
 // 이름 10자, 필수 빈칸5자, 랭킹 숫자('.'포함)5자 (999.9까지)
-// 첫번째 6은 맵의 번호, 두번째 6은 사용자(6번째가 신규 플레이어)clock_t start, end, diff;
+// 첫번째 6은 맵의 번호, 두번째 6은 사용자(6번째가 신규 플레이어)
 clock_t start, end, diff; 
-
 int getch(void) 
-{        
-	int ch;   
-	struct termios buf;   
-	struct termios save;   
-	tcgetattr(0, &save);   
-	buf = save;   
-	buf.c_lflag&=~(ICANON|ECHO);   
-	buf.c_cc[VMIN] = 1;   
-	buf.c_cc[VTIME] = 0;   
-	tcsetattr(0, TCSAFLUSH, &buf);   
-	ch = getchar();   
-	tcsetattr(0, TCSAFLUSH, &save);   
-	return ch;
+{
+        int ch;
+   struct termios buf;
+   struct termios save;
+   tcgetattr(0, &save);
+   buf = save;
+   buf.c_lflag&=~(ICANON|ECHO);
+   buf.c_cc[VMIN] = 1;
+   buf.c_cc[VTIME] = 0;
+   tcsetattr(0, TCSAFLUSH, &buf);
+   ch = getchar();
+   tcsetattr(0, TCSAFLUSH, &save);
+   return ch;
 }
 void error(int a)
-{  
-	if( a % 2 != 0) 
-	{  
-		printf("오류");   
-		exit(1); 
-	}  
+{	
+	if( a % 2 != 0)
+	{
+		printf("오류");
+		 exit(1);
+	}	 
 }
 void display()
-{ 
-	printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n"); 
-	printf("u(undo)\n"); 
-	printf("r(replay)\n"); 
-	printf("n(new)\n"); 
-	printf("e(exit)\n"); 
-	printf("s(save)\n"); 
-	printf("f(file load)\n"); 
-	printf("d(display help\n"); 
+{
+	system("clear");
+	printf("Hello %s\n\n", name);
+	printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n");
+	printf("u(undo)\n");
+	printf("r(replay)\n");
+	printf("n(new)\n");
+	printf("e(exit)\n");
+	printf("s(save)\n");
+	printf("f(file load)\n");
+	printf("d(display help)\n");
 	printf("t(top)\n");
 }
 void save(time_t d)
-{ 
-	FILE *out; 
-	out = fopen("sokoban","w"); 
-	for(int i=0;i<10;i++) 
-	fprintf(out,"%c",name[i]); 
-	fprintf(out,"\n"); 
-	fprintf(out,"%d\n",d); 
-	fprintf(out,"%d\n",n); 
-	int temp = n; 
-	for(n; n < 5; n++){  
-		for(int i=1 ; i<size[n] ;i ++){   
-			for(int j=0 ;j<30 ; j++){    
-				fprintf(out,"%c",map[n][i][j]);      
-						}    
-				fprintf(out,"\n");      
-						}    
+{
+	FILE *out;
+	out = fopen("sokoban","w");
+	for(int i=0;i<10;i++)
+	fprintf(out,"%c",name[i]);
+	fprintf(out,"\n");
+	fprintf(out,"%d\n",d);
+	fprintf(out,"%d\n",n);
+	int temp = n;
+	for(n; n < 5; n++){
+		for(int i=1 ; i<size[n] ;i ++){
+			for(int j=0 ;j<30 ; j++){
+				fprintf(out,"%c",map[n][i][j]);
+						}
+				fprintf(out,"\n");
+						}
 				fprintf(out,"\n");}
 n = temp;
 fclose(out);
 }
 int load()
-{ 
-	FILE *in; 
-	char data; 
-	int a; 
-	int time; 
-	in = fopen("sokoban","r"); 
-	for(int i=0 ; i<10; i++) 
+{
+	FILE *in;
+	char data;	
+	int a;
+	int time;
+	system("clear");
+	in = fopen("sokoban","r");
+	for(int i=0 ; i<10; i++)
 	fscanf(in,"%c",&name[i]);
-	fscanf(in,"%d",&start); 
-	fscanf(in,"%d",&n); 
-	int temp = n; 
-	for(n; n < 5; n++){  
-		for(int i=0 ; i<size[n] ;i++){   
-			for(int j=0 ;j<31 ;j++){    
-				fscanf(in,"%c",&data);    
-				if(data == '\n')    
-				break;    
-				map[n][i][j] = data;      
-			}  
-			}    
+	fscanf(in,"%d",&start);
+	fscanf(in,"%d",&n);
+	int temp = n;
+	for(n; n < 5; n++){
+		for(int i=0 ; i<size[n] ;i++){
+			for(int j=0 ;j<31 ;j++){
+				fscanf(in,"%c",&data);
+				if(data == '\n')
+				break;
+				map[n][i][j] = data;			
+			}
+			}
 				}
 n = temp;
 fclose(in);
 }
 void replay()
-{ 
-	for(int i =1; i < size[n]; i++)  
-		for(int j=0 ; j<30; j++)  
-		map[n][i][j] = Undo[0][n][i][j];    
+{
+	system("clear");
+	printf("Hello %s\n\n", name);
+	for(int i =1; i < size[n]; i++)
+		for(int j=0 ; j<30; j++)
+		map[n][i][j] = Undo[0][n][i][j]; 
+			
 }
 int read()
-{ 
-	FILE *in;    
-	char data; 
-	in = fopen("map.txt", "r");    
-	for(int n=0 ; n<5; n++){                
-		for(int i=0 ; i<30; i++){                                
-			for(int j=0 ; j<30; j++){    
-				fscanf(in,"%c",&data);                                 
-				if( data == '\n')                                      
-				break;     
-				else if ( data == 'm' && (i != 0))     
-				break;     
-				else if ( data == 'e')     
-				break;        
-				else if( data == '$')      
-					++e;     
-				else if( data == 'O'){      
-					++e;      
-					Floor[n][i][j] = 1;     
-				}
-				map[n][i][j] = data;     
-				answer[n][i][j] = data;     
-				Undo[0][n][i][j] = data;     
-				Undo[6][n][i][j] = data;     
-				}       
-				if( data == 'm' || data == 'e' )     
-				{ 	size[n] = i;      
-					break;                                    
-					
-				}            
-				}     
-				}     
+{
+	FILE *in;   
+	char data;
+	system("clear");
+	printf("Hello %s\n\n", name);
+	in = fopen("map.txt", "r");   
+	for(int n=0 ; n<5; n++){
+                for(int i=0 ; i<30; i++){
+                                for(int j=0 ; j<30; j++){
+					fscanf(in,"%c",&data);
+                                	if( data == '\n')
+                                     	break;
+					else if ( data == 'm' && (i != 0))
+					break;
+					else if ( data == 'e')
+					break;			
+					else if( data == '$')
+						++e;
+					else if( data == 'O'){
+						++e;
+						Floor[n][i][j] = 1;
+					}
+					map[n][i][j] = data;
+					answer[n][i][j] = data;
+					Undo[0][n][i][j] = data;
+					Undo[6][n][i][j] = data;
+					}		
+					if( data == 'm' || data == 'e' )
+					{	size[n] = i;
+						break;					
+                       			
+					}
+        				}
+					}
+				
 	fclose(in);
-	return e;
+return e;
 }
 int check_x()
-{ 
-	int check_x; 
-	for(int i=1; i< size[n] ; i++){  
-		for(int j=0 ; j < 30; j++)  
-		{   
-			if(map[n][i][j] == '@')    
-				check_x = i;  
-			}}   
-		return check_x;
+{
+	int check_x;
+	for(int i=1; i< size[n] ; i++){
+		for(int j=0 ; j < 30; j++)
+		{
+			if(map[n][i][j] == '@')
+				check_x = i;
+		}}		
+	return check_x;
 }
 int check_y()
-{ 
-	int check_y; 
-	for(int i=1; i< size[n] ; i++){  
-		for(int  j=0 ; j < 30; j++)  
-		{   
-			if(map[n][i][j] == '@')    
-				check_y = j;  
-		}}  
+{
+	int check_y;
+	for(int i=1; i< size[n] ; i++){
+		for(int  j=0 ; j < 30; j++)
+		{
+			if(map[n][i][j] == '@')
+				check_y = j;
+		}}	
 	return check_y;
 }
 int finish()
-{  
-	int x = check_x(n); 
-	int y = check_y(n);  
-		for(int i=1; i <size[n] ; i++){   
-			for(int j=0; j<30 ;j++){   
-			if(answer[n][i][j] == '$')   
-			answer[n][i][j] = ' ';   
-			else if(answer[n][i][j] == '@')   
-			answer[n][i][j] = ' ';   
-			}    
-		}  		
-               for(int i=1; i <size[n] ; i++){
-	       		for(int j=0; j<30 ;j++){    
-				if(answer[n][i][j] == 'O')    
-				answer[n][i][j] = '$';   
-			} 
-	       }
-	       		map[n][x][y] = ' ';  
-	       for(int i=1; i <size[n] ; i++){     
-	       		for(int j=0; j<30 ;j++){   
-			if(map[n][i][j] != answer[n][i][j]){    
-				map[n][x][y] = '@';    
-				return 0;   
-			}   
-			}  
-		}      
-		
-		return 1;  
+{	
+	int x = check_x(n);
+	int y = check_y(n);
+		for(int i=1; i <size[n] ; i++){
+			for(int j=0; j<30 ;j++){
+			if(answer[n][i][j] == '$')
+			answer[n][i][j] = ' ';
+			else if(answer[n][i][j] == '@')
+			answer[n][i][j] = ' ';
+			}		
+		}			
+		for(int i=1; i <size[n] ; i++){
+			for(int j=0; j<30 ;j++){
+				if(answer[n][i][j] == 'O')
+				answer[n][i][j] = '$';
+			}
+		}
+			map[n][x][y] = ' ';
+		for(int i=1; i <size[n] ; i++){		
+			for(int j=0; j<30 ;j++){
+			if(map[n][i][j] != answer[n][i][j]){
+				map[n][x][y] = '@';
+				return 0;
+			}
+			}
+		}
+				
+		return 1;		
 }
+
 int move(int a,int u)
 
 {
@@ -203,7 +212,8 @@ int move(int a,int u)
    int x = check_x(n);
    int y = check_y(n);
    int o;
-
+   system("clear");
+   printf("Hello %s\n\n", name);
    switch(a)
    {
       case 'k': // 위; 오히려 좌표 감소
@@ -390,6 +400,8 @@ return u;
 }
 int undo(int u)
 {	
+	system("clear");
+	printf("Hello %s\n\n", name);
 	u--;
 	if( u > 0 ){	
 	for(int i=1;i<size[n];i++){
@@ -467,6 +479,7 @@ void Read_Rank() // 기존 랭킹'만' 읽는다
    }
    fclose(r);
 }
+
 void Compare(void) // 게임이 끝나고 랭킹 수정
 {
    char ch_char; // for문에서 순위 변동 시 사용(이름을 대변)
@@ -479,7 +492,7 @@ void Compare(void) // 게임이 끝나고 랭킹 수정
 
    for(n=0;n<=5;n++) // n번째 맵에 대하여
    {
-         for(m=5;m>0;m--) // 도전자와 꼴지부터 대결(m=0이 랭킹 1위)
+         for(m=5;m>0;m--) // 도전자와 꼴지부터 대결(m=0이 행킹 1위)
          {
             while(compare[n][m-1] == '0') // 사람이 없으면 그냥 승강!
             {
@@ -527,6 +540,8 @@ void Compare(void) // 게임이 끝나고 랭킹 수정
    fclose(r);
 }
 // 어차피 아무도 없는 곳은 NULL값이기 때문에 빈공간이나 \n조차 찍히지 않는다
+
+
 void top(int a) // 랭킹을 띄우는 함수
 {
    Read_Rank();
@@ -611,107 +626,111 @@ void top(int a) // 랭킹을 띄우는 함수
    }// switch END
 }
 int main(void)
-{
-	    int e,a;
-      printf("Start...\n");
-      printf("Input name: ");
-      gets(name);
-new:
-      e = read();
-      int u=0;
-      int count=0;
-      error(e);
-play: printf("Hello %s\n\n",name);
-      for(n; n < 5; n++){  
-            for(int i=1 ; i<size[n] ;i ++){   
-                  for(int j=0 ;j<30 ; j++){   
-                  printf("%c",map[n][i][j]);   
-                  }  
-            printf("\n");  
-            }
-      Get_Clock(); 
-      int key; 
-      if(key == 'u') 
-      printf("u\n");  
-      while(1){ 
-      key = getch(); 
-      switch(key)
-      {  
-              case 'h':  
-              u = move(key,u);  
-              count = 0;  
-              if(f==1)  ++n;  
-              goto play;
-  
-              case 'j':  
-              u = move(key,u);  
-              count = 0;  
-              if(f==1)  ++n;  
-              goto play;
-              
-              case 'k':  
-              u = move(key,u);  
-              count = 0;   
-              if(f==1)  
-              ++n;  
-              goto play;
-      
-              case'l':  
-              u = move(key,u);  
-              count = 0;  
-              if(f==1)  
-              ++n;  
-              goto play;
-              
-              case 'd':  
-              printf("d\n");  
-              display();  
-              break;
-  
-              case 's':   
-              printf("s\n");  
-              save(start);  
-              break;
-  
-              case 'f':  
-              printf("f\n");  
-              load();  
-              goto play;    
-              
-              case 'e':  
-              printf("e\n");  
-              printf("S E E Y O U %s\n",name);  
-              exit(1);    
-              
-              case 'n':  
-              printf("n\n");  
-              goto new;      
-              
-              case 'r':  
-              printf("r\n");  
-              replay();  
-              goto play;
-  
-              case 'u':  
-              ++count;  
-              if(count < 6)  
-              u = undo(u);
-              else{   
-                      printf("최대 5번 사용\n");   
-                      break;  
-              }  
-              goto play;    
-              
-              case 't':  
-              printf("t");  
-              scanf("%d",&a);  
-              top(a);  
-              break;   
-      }//switch   
-      
-      }//while  
-      
-      }//for
+{   
+	int e,a;
+	printf("Start...\n");
+	printf("Input name: ");
+	gets(name);
+new:	
+	e = read();
+	int u=0;
+	int count=0;
+	error(e);
+play:	system("clear");
+	printf("Hello %s\n\n",name);	
+	for(n; n < 5; n++){
+		for(int i=1 ; i<size[n] ;i ++){
+			for(int j=0 ;j<30 ; j++){
+			printf("%c",map[n][i][j]);
+			}
+		printf("\n");
+		}
+	Get_Clock();
+	int key;
+	if(key == 'u')
+	printf("u\n");	
+	while(1){
+	key = getch();
+	switch(key)
+	{
+		case 'h':
+		u = move(key,u);
+		count = 0;
+		if(f==1)
+		++n;
+		goto play;
+
+		case 'j':
+		u = move(key,u);
+		count = 0;
+		if(f==1)
+		++n;
+		goto play;
+
+		case 'k':
+		u = move(key,u);
+		count = 0;	
+		if(f==1)
+		++n;
+		goto play;
+
+		case'l':
+		u = move(key,u);
+		count = 0;
+		if(f==1)
+		++n;
+		goto play;
+
+		case 'd':
+		printf("d\n");
+		display();
+		break;
+
+		case 's': 
+		printf("s\n");
+		save(start);
+		break;
+
+		case 'f':
+		printf("f\n");
+		load();
+		goto play;
+		
+		case 'e':
+		printf("e\n");
+		printf("S E E Y O U %s\n",name);
+		exit(1);
+		
+		case 'n':
+		printf("n\n");
+		goto new;
+		
+		
+		case 'r':
+		printf("r\n");
+		replay();
+		goto play;
+
+		case 'u':
+		++count;
+		if(count < 6)
+		u = undo(u);
+		else{
+			printf("최대 5번 사용\n");
+			break;
+		}
+		goto play;
+		
+		case 't':
+		printf("t");
+		scanf("%d",&a);
+		top(a);
+		break;		
+	}//switch
+		
+	}//while
+	
+	}//for
 printf("Complete\n");
 return 0;
 }
