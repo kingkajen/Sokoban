@@ -4,7 +4,6 @@
 #define MAX 30
 #include <termio.h>
 char map[5][MAX][MAX]={0}; // 화면에 띄우는 맵배열
-
 char Undo[7][5][MAX][MAX] = {0};// Undo[0]는 read했을때 최초의 모습유지, 나머지는 Undo명령어 위한 공간
 char answer[5][MAX][MAX] = {0}; // 상자가 'O'에 다들어간 모습
 char name[10]; // 사용자 이름 배열int Floor[5][MAX][MAX] = {0}; // 맵의 바닥이 'O'인지 아닌지 확인용 배열
@@ -142,6 +141,58 @@ int read()
 				}     
 	fclose(in);
 	return e;
+}
+int check_x()
+{ 
+	int check_x; 
+	for(int i=1; i< size[n] ; i++){  
+		for(int j=0 ; j < 30; j++)  
+		{   
+			if(map[n][i][j] == '@')    
+				check_x = i;  
+			}}   
+		return check_x;
+}
+int check_y()
+{ 
+	int check_y; 
+	for(int i=1; i< size[n] ; i++){  
+		for(int  j=0 ; j < 30; j++)  
+		{   
+			if(map[n][i][j] == '@')    
+				check_y = j;  
+		}}  
+	return check_y;
+}
+int finish()
+{  
+	int x = check_x(n); 
+	int y = check_y(n);  
+		for(int i=1; i <size[n] ; i++){   
+			for(int j=0; j<30 ;j++){   
+			if(answer[n][i][j] == '$')   
+			answer[n][i][j] = ' ';   
+			else if(answer[n][i][j] == '@')   
+			answer[n][i][j] = ' ';   
+			}    
+		}  		
+               for(int i=1; i <size[n] ; i++){
+	       		for(int j=0; j<30 ;j++){    
+				if(answer[n][i][j] == 'O')    
+				answer[n][i][j] = '$';   
+			} 
+	       }
+	       		map[n][x][y] = ' ';  
+	       for(int i=1; i <size[n] ; i++){     
+	       		for(int j=0; j<30 ;j++){   
+			if(map[n][i][j] != answer[n][i][j]){    
+				map[n][x][y] = '@';    
+				return 0;   
+			}   
+			}  
+		}      
+		
+		return 1;  
 }
 				
 				
