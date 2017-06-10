@@ -1,0 +1,716 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+#define MAX 30
+#include <termio.h>
+char map[5][MAX][MAX]={0}; // 화면에 띄우는 맵배열
+char Undo[7][5][MAX][MAX] = {0};// Undo[0]는 read했을때 최초의 모습유지, 나머지는 Undo명령어 위한 공간
+char answer[5][MAX][MAX] = {0}; // 상자가 'O'에 다들어간 모습
+char name[10]; // 사용자 이름 배열int Floor[5][MAX][MAX] = {0}; // 맵의 바닥이 'O'인지 아닌지 확인용 배열
+int size[5] = {0}; // 각 맵의 세로 크기
+int e=0;// 맵을 read할 때 '$'와 'O'의 개수 확인용 변수 
+int f=0;// 맵 완료(0 or 1) 변수
+int n = 0; // 맵 순서(map 0, map1...) 에대한 변수
+float rank[6] = {0}; // 한 사용자에 대하여
+float compare[6][6] = {0};
+// 한 맵에 대해서 다른 랭커들과 비교할 때
+char LIST[6][6][15] = {0};
+// 실재 랭킹 파일에는 compare이 아니라 LIST가 입력된다.
+// 이름 10자, 필수 빈칸5자, 랭킹 숫자('.'포함)5자 (999.9까지)
+// 첫번째 6은 맵의 번호, 두번째 6은 사용자(6번째가 신규 플레이어)clock_t start, end, diff;
+clock_t start, end, diff; 
+int getch(void) 
+{        
+	int ch;   
+	struct termios buf;   
+	struct termios save;   
+	tcgetattr(0, &save);   
+	buf = save;   
+	buf.c_lflag&=~(ICANON|ECHO);   
+	buf.c_cc[VMIN] = 1;   
+	buf.c_cc[VTIME] = 0;   
+	tcsetattr(0, TCSAFLUSH, &buf);   
+	ch = getchar();   
+	tcsetattr(0, TCSAFLUSH, &save);   
+	return ch;
+}
+void error(int a)
+{  
+	if( a % 2 != 0) 
+	{  
+		printf("오류");   
+		exit(1); 
+	}  
+}
+void display()
+{ 
+	printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n"); 
+	printf("u(undo)\n"); 
+	printf("r(replay)\n"); 
+	printf("n(new)\n"); 
+	printf("e(exit)\n"); 
+	printf("s(save)\n"); 
+	printf("f(file load)\n"); 
+	printf("d(display help\n"); 
+	printf("t(top)\n");
+}
+void save(time_t d)
+{ 
+	FILE *out; 
+	out = fopen("sokoban","w"); 
+	for(int i=0;i<10;i++) 
+	fprintf(out,"%c",name[i]); 
+	fprintf(out,"\n"); 
+	fprintf(out,"%d\n",d); 
+	fprintf(out,"%d\n",n); 
+	int temp = n; 
+	for(n; n < 5; n++){  
+		for(int i=1 ; i<size[n] ;i ++){   
+			for(int j=0 ;j<30 ; j++){    
+				fprintf(out,"%c",map[n][i][j]);      
+						}    
+				fprintf(out,"\n");      
+						}    
+				fprintf(out,"\n");}
+n = temp;
+fclose(out);
+}
+int load()
+{ 
+	FILE *in; 
+	char data; 
+	int a; 
+	int time; 
+	in = fopen("sokoban","r"); 
+	for(int i=0 ; i<10; i++) 
+	fscanf(in,"%c",&name[i]);
+	fscanf(in,"%d",&start); 
+	fscanf(in,"%d",&n); 
+	int temp = n; 
+	for(n; n < 5; n++){  
+		for(int i=0 ; i<size[n] ;i++){   
+			for(int j=0 ;j<31 ;j++){    
+				fscanf(in,"%c",&data);    
+				if(data == '\n')    
+				break;    
+				map[n][i][j] = data;      
+			}  
+			}    
+				}
+n = temp;
+fclose(in);
+}
+void replay()
+{ 
+	for(int i =1; i < size[n]; i++)  
+		for(int j=0 ; j<30; j++)  
+		map[n][i][j] = Undo[0][n][i][j];    
+}
+int read()
+{ 
+	FILE *in;    
+	char data; 
+	in = fopen("map.txt", "r");    
+	for(int n=0 ; n<5; n++){                
+		for(int i=0 ; i<30; i++){                                
+			for(int j=0 ; j<30; j++){    
+				fscanf(in,"%c",&data);                                 
+				if( data == '\n')                                      
+				break;     
+				else if ( data == 'm' && (i != 0))     
+				break;     
+				else if ( data == 'e')     
+				break;        
+				else if( data == '$')      
+					++e;     
+				else if( data == 'O'){      
+					++e;      
+					Floor[n][i][j] = 1;     
+				}
+				map[n][i][j] = data;     
+				answer[n][i][j] = data;     
+				Undo[0][n][i][j] = data;     
+				Undo[6][n][i][j] = data;     
+				}       
+				if( data == 'm' || data == 'e' )     
+				{ 	size[n] = i;      
+					break;                                    
+					
+				}            
+				}     
+				}     
+	fclose(in);
+	return e;
+}
+int check_x()
+{ 
+	int check_x; 
+	for(int i=1; i< size[n] ; i++){  
+		for(int j=0 ; j < 30; j++)  
+		{   
+			if(map[n][i][j] == '@')    
+				check_x = i;  
+			}}   
+		return check_x;
+}
+int check_y()
+{ 
+	int check_y; 
+	for(int i=1; i< size[n] ; i++){  
+		for(int  j=0 ; j < 30; j++)  
+		{   
+			if(map[n][i][j] == '@')    
+				check_y = j;  
+		}}  
+	return check_y;
+}
+int finish()
+{  
+	int x = check_x(n); 
+	int y = check_y(n);  
+		for(int i=1; i <size[n] ; i++){   
+			for(int j=0; j<30 ;j++){   
+			if(answer[n][i][j] == '$')   
+			answer[n][i][j] = ' ';   
+			else if(answer[n][i][j] == '@')   
+			answer[n][i][j] = ' ';   
+			}    
+		}  		
+               for(int i=1; i <size[n] ; i++){
+	       		for(int j=0; j<30 ;j++){    
+				if(answer[n][i][j] == 'O')    
+				answer[n][i][j] = '$';   
+			} 
+	       }
+	       		map[n][x][y] = ' ';  
+	       for(int i=1; i <size[n] ; i++){     
+	       		for(int j=0; j<30 ;j++){   
+			if(map[n][i][j] != answer[n][i][j]){    
+				map[n][x][y] = '@';    
+				return 0;   
+			}   
+			}  
+		}      
+		
+		return 1;  
+}
+
+int move(int a,int u)
+
+{
+   u++;
+   int x = check_x(n);
+   int y = check_y(n);
+   int o;
+
+   switch(a)
+   {
+      case 'k': // 위; 오히려 좌표 감소
+
+      if (map[n][x-1][y] == 36) // $
+      {
+         if(map[n][x-2][y] == 32 || map[n][x-2][y] == 79)
+            // 상자 옆이 빈공간
+         {
+          if(Floor[n][x][y])
+             map[n][x][y] = 79;
+          else
+             map[n][x][y] = 32;
+          map[n][x-2][y] = 36;
+          map[n][x-1][y] = 64;
+          break;
+         }
+         else
+            break;
+      }
+
+      else if (map[n][x-1][y] == 32) // sp(빈 공간)
+      {
+         if(Floor[n][x][y]) // 1일 경우 O바닥 // 0일 경우 맨바닥
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x-1][y] = 64;
+         break;
+      }
+      else if (map[n][x-1][y] == 79)
+      {
+         if(Floor[n][x][y])
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x-1][y] = 64;
+         break;
+      }
+      else
+         break;
+
+      case 'j': // 위; 오히려 좌표 감소
+
+      if (map[n][x+1][y] == 36) // $
+      {
+         if(map[n][x+2][y] == 32 || map[n][x+2][y] == 79)
+            // 상자 옆이 빈공간
+         {
+          if(Floor[n][x][y])
+             map[n][x][y] = 79;
+          else
+             map[n][x][y] = 32;
+          map[n][x+2][y] = 36;
+          map[n][x+1][y] = 64;
+          break;
+         }
+         else
+            break;
+      }
+
+      else if (map[n][x+1][y] == 32) // sp(빈 공간)
+      {
+         if(Floor[n][x][y]) // 1일 경우 O바닥 // 0일 경우 맨바닥
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x+1][y] = 64;
+         break;
+      }
+      else if (map[n][x+1][y] == 79)
+      {
+         if(Floor[n][x][y])
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x+1][y] = 64;
+         break;
+      }
+      else
+         break;
+
+
+      case 'l':
+
+      if (map[n][x][y+1] == 36) // $
+      {
+         if(map[n][x][y+2] == 32 || map[n][x][y+2] == 79)
+            // 상자 옆이 빈공간
+         {
+          if(Floor[n][x][y])
+
+             map[n][x][y] = 79;
+          else
+             map[n][x][y] = 32;
+          map[n][x][y+2] = 36;
+          map[n][x][y+1] = 64;
+          break;
+         }
+         else
+            break;
+      }
+
+      else if (map[n][x][y+1] == 32) // sp(빈 공간)
+      {
+         if(Floor[n][x][y]) // 1일 경우 O바닥 // 0일 경우 맨바닥
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x][y+1] = 64;
+         break;
+      }
+      else if (map[n][x][y+1] == 79)
+      {
+         if(Floor[n][x][y])
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x][y+1] = 64;
+         break;
+      }
+      else
+         break;
+
+
+      case 'h': // 위; 오히려 좌표 감소
+
+      if (map[n][x][y-1] == 36) // $
+      {
+         if(map[n][x][y-2] == 32 || map[n][x][y-2] == 79)
+            // 상자 옆이 빈공간
+         {
+          if(Floor[n][x][y])
+             map[n][x][y] = 79;
+          else
+             map[n][x][y] = 32;
+          map[n][x][y-2] = 36;
+          map[n][x][y-1] = 64;
+          break;
+         }
+         else
+            break;
+      }
+
+      else if (map[n][x][y-1] == 32) // sp(빈 공간)
+      {
+         if(Floor[n][x][y]) // 1일 경우 O바닥 // 0일 경우 맨바닥
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x][y-1] = 64;
+         break;
+      }
+      else if (map[n][x][y-1] == 79)
+      {
+         if(Floor[n][x][y])
+            map[n][x][y] = 79;
+         else
+            map[n][x][y] = 32;
+
+         map[n][x][y-1] = 64;
+         break;
+      }
+      else
+         break;
+   }
+	for(int i=1;i<size[n];i++){
+		for(int j=0;j<30;j++){
+			if( u == 7 )
+			u = 1;
+			Undo[u][n][i][j] = map[n][i][j];
+		}
+	}
+	
+	f= finish();
+return u;
+}
+int undo(int u)
+{	
+	u--;
+	if( u > 0 ){	
+	for(int i=1;i<size[n];i++){
+		for(int j=0;j<30;j++){
+		map[n][i][j] = Undo[u][n][i][j];
+		}
+	}
+	}
+	else{
+	u = 6;
+	for(int i=1;i<size[n];i++){
+		for(int j=0;j<30;j++){
+		map[n][i][j] = Undo[u][n][i][j];
+		}
+	}
+	}
+	
+return u;
+}
+// 위치는 for문 중 n에 들어간 직후, 즉 y,x 순환이 시작하기 전
+void Get_Clock() // n번째 맵을 읽고 옴(위치에 따라 n-1을 int n으로 할 수도..)
+{
+   if(n == 0)
+      start = clock();
+   else // n == 1~4
+   {
+      end = clock();
+      diff = (end-start) / CLOCKS_PER_SEC;
+      rank[n-1] = diff; // n=1 일 경우, n=0 번째 맵의 시간을  기억해야 한다.
+
+      rank[5] += rank[n-1];
+
+      start =clock();
+   } // 저 값들을 중도에 세이브까지 해야 되다니...
+}
+void Read_Rank() // 기존 랭킹'만' 읽는다
+{
+   int n, m, l, j; // 오직 for문을 위한 변수
+   float c1, c2, c3, c5; // 랭킹 시간을 받아옴
+   char c; // 그냥 어떤 문자 받는 동네북
+   FILE *r; // 랭킹 파일
+
+   r = fopen("rank.txt","r");
+
+   for(n=0;n<=5;n++) // n번째 맵(n=5, 즉 6번째 맵은 total 시간)
+   {
+      for(m=0;m<=4;m++) // m번째 사람(기존 랭커 5명)
+      {
+         while(1)
+         {
+            if(c=(fscanf(r,"%c",'\n')))
+               break;
+         } // map를 읽을 필요는 없잖아...
+
+         if(LIST[n][m][0] != '0' ) // 사람 기록이 있는 경우
+         {
+            for(l=0;l<=14;l++)
+            {
+               fscanf(r,"%c",&LIST[n][m][l]);
+            } // 숫자 직전까지 읽음
+
+         }
+            if(compare[n][m] != '0') // 숫자 기록이 있는 경우
+         {
+             fscanf(r,"%d",c1);
+             fscanf(r,"%d",c2);
+             fscanf(r,"%d",c3);
+             fscanf(r,"%c",c); // 여기는 무조건 '.'
+             fscanf(r,"%d",c5);
+
+            compare[n][m]= 100*c1 + 10*c2 + c3 + 0.1*c5;
+         // 이렇게 비교할 숫자를 만들고
+         }
+      }
+   }
+   fclose(r);
+}
+void Compare(void) // 게임이 끝나고 랭킹 수정
+{
+   char ch_char; // for문에서 순위 변동 시 사용(이름을 대변)
+   float ch_float;// for문에서 순위 변동 시 사용(시간을 대변)
+
+   FILE *r;
+   int n, m, l; // for문을 위한 동네북 변수
+
+   compare[n][5] = rank[n]; // here comes challenger?
+
+   for(n=0;n<=5;n++) // n번째 맵에 대하여
+   {
+         for(m=5;m>0;m--) // 도전자와 꼴지부터 대결(m=0이 랭킹 1위)
+         {
+            while(compare[n][m-1] == '0') // 사람이 없으면 그냥 승강!
+            {
+               compare[n][m-1] = compare[n][m];
+               compare[n][m] = '0';
+               m--;
+
+               if(m == 0) // segmentation 오류 방지하는 역할도 있지만...
+                  break;
+            }
+            if(m == 0) // 여기까지 왔으면 사실 자기 빼고는 없었다는 거잖아;;
+               break;
+
+            if (compare[n][m] <= compare[n][m-1])
+            {
+               ch_float = compare[n][m];
+               compare[n][m] = compare[n][m-1];
+               compare[n][m-1] = ch_float;
+
+               ch_char = LIST[n][m][0]; // 이름도 승급!
+               LIST[n][m][0]= LIST[n][m-1][0];
+               LIST[n][m-1][0] = ch_char;
+            }
+         }
+   } // 개정 랭킹 정보 수정 끝!
+
+   r = fopen("rank.txt","w"); // 랭킹 파일 처음부터 다시 쓰기!
+
+   for(n=0;n<=4;n++)
+   {
+      if(n<=4) // for each map
+         fprintf(r,"map%d\n",n+1);
+      else // n == 5; all time
+         fprintf(r, "TOTAL RANK\n");
+
+      for(m=0;m<=4;m++)
+      {
+         for(l=0;l<=14;l++)
+         {
+            fprintf(r,"%c",LIST[n][m][l]);
+         }
+         fprintf(r,"%f\n",compare[n][m]);
+      }
+   }
+   fclose(r);
+}
+// 어차피 아무도 없는 곳은 NULL값이기 때문에 빈공간이나 \n조차 찍히지 않는다
+void top(int a) // 랭킹을 띄우는 함수
+{
+   Read_Rank();
+   int n, m, l;
+
+   switch(a)
+   {
+      case '1':
+         n = 0; // for문 대신 n 한 값만 있으면 된다.
+            for(m=0;m<=4;m++) // 상위권부터 printf
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '2':
+         n = 1;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '3':
+            n = 2;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '4':
+            n = 3;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      case '5':
+            n = 4;
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+
+      default:
+         for(n=0;n<=4;n++)
+         {
+            for(m=0;m<=4;m++)
+            {
+               printf("map %d\n",m+1);
+               for(l=0;l<=14;l++)
+               {
+                  printf("%c",LIST[n][m][l]);
+               }
+               printf("%f\n",compare[n][m]);
+            }
+         }
+
+   }// switch END
+}
+int main(void)
+{
+	    int e,a;
+      printf("Start...\n");
+      printf("Input name: ");
+      gets(name);
+new:
+      e = read();
+      int u=0;
+      int count=0;
+      error(e);
+play: printf("Hello %s\n\n",name);
+      for(n; n < 5; n++){  
+            for(int i=1 ; i<size[n] ;i ++){   
+                  for(int j=0 ;j<30 ; j++){   
+                  printf("%c",map[n][i][j]);   
+                  }  
+            printf("\n");  
+            }
+      Get_Clock(); 
+      int key; 
+      if(key == 'u') 
+      printf("u\n");  
+      while(1){ 
+      key = getch(); 
+      switch(key)
+      {  
+              case 'h':  
+              u = move(key,u);  
+              count = 0;  
+              if(f==1)  ++n;  
+              goto play;
+  
+              case 'j':  
+              u = move(key,u);  
+              count = 0;  
+              if(f==1)  ++n;  
+              goto play;
+              
+              case 'k':  
+              u = move(key,u);  
+              count = 0;   
+              if(f==1)  
+              ++n;  
+              goto play;
+      
+              case'l':  
+              u = move(key,u);  
+              count = 0;  
+              if(f==1)  
+              ++n;  
+              goto play;
+              
+              case 'd':  
+              printf("d\n");  
+              display();  
+              break;
+  
+              case 's':   
+              printf("s\n");  
+              save(start);  
+              break;
+  
+              case 'f':  
+              printf("f\n");  
+              load();  
+              goto play;    
+              
+              case 'e':  
+              printf("e\n");  
+              printf("S E E Y O U %s\n",name);  
+              exit(1);    
+              
+              case 'n':  
+              printf("n\n");  
+              goto new;      
+              
+              case 'r':  
+              printf("r\n");  
+              replay();  
+              goto play;
+  
+              case 'u':  
+              ++count;  
+              if(count < 6)  
+              u = undo(u);
+              else{   
+                      printf("최대 5번 사용\n");   
+                      break;  
+              }  
+              goto play;    
+              
+              case 't':  
+              printf("t");  
+              scanf("%d",&a);  
+              top(a);  
+              break;   
+      }//switch   
+      
+      }//while  
+      
+      }//for
+printf("Complete\n");
+return 0;
+}
