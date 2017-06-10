@@ -7,6 +7,7 @@ char map[5][MAX][MAX]={0}; // 화면에 띄우는 맵배열
 char Undo[7][5][MAX][MAX] = {0};// Undo[0]는 read했을때 최초의 모습유지, 나머지는 Undo명령어 위한 공간
 char answer[5][MAX][MAX] = {0}; // 상자가 'O'에 다들어간 모습
 char name[10]; // 사용자 이름 배열int Floor[5][MAX][MAX] = {0}; // 맵의 바닥이 'O'인지 아닌지 확인용 배열
+int Floor[5][MAX][MAX] = {0}; // 맵의 바닥이 'O'인지 아닌지 확인용 배열
 int size[5] = {0}; // 각 맵의 세로 크기
 int e=0;// 맵을 read할 때 '$'와 'O'의 개수 확인용 변수 
 int f=0;// 맵 완료(0 or 1) 변수
