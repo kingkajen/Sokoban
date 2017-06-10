@@ -37,42 +37,42 @@ int getch(void)
 }
 void error(int a)
 {  
-				if( a % 2 != 0) 
-				{  
-								printf("오류");   
-								exit(1); 
-				}  
+	if( a % 2 != 0) 
+	{  
+		printf("오류");   
+		exit(1); 
+	}  
 }
 void display()
 { 
-				printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n"); 
-				printf("u(undo)\n"); 
-				printf("r(replay)\n"); 
-				printf("n(new)\n"); 
-				printf("e(exit)\n"); 
-				printf("s(save)\n"); 
-				printf("f(file load)\n"); 
-				printf("d(display help\n"); 
-				printf("t(top)\n");
+	printf("h(왼쪽), j(아래), k(위), l(오른쪽)\n"); 
+	printf("u(undo)\n"); 
+	printf("r(replay)\n"); 
+	printf("n(new)\n"); 
+	printf("e(exit)\n"); 
+	printf("s(save)\n"); 
+	printf("f(file load)\n"); 
+	printf("d(display help\n"); 
+	printf("t(top)\n");
 }
 void save(time_t d)
 { 
-				FILE *out; 
-				out = fopen("sokoban","w"); 
-				for(int i=0;i<10;i++) 
-				fprintf(out,"%c",name[i]); 
-				fprintf(out,"\n"); 
-				fprintf(out,"%d\n",d); 
-				fprintf(out,"%d\n",n); 
-				int temp = n; 
-				for(n; n < 5; n++){  
-								for(int i=1 ; i<size[n] ;i ++){   
-												for(int j=0 ;j<30 ; j++){    
-																fprintf(out,"%c",map[n][i][j]);      
-																								}    
-																fprintf(out,"\n");      
-																								}    
-																fprintf(out,"\n");}
+	FILE *out; 
+	out = fopen("sokoban","w"); 
+	for(int i=0;i<10;i++) 
+	fprintf(out,"%c",name[i]); 
+	fprintf(out,"\n"); 
+	fprintf(out,"%d\n",d); 
+	fprintf(out,"%d\n",n); 
+	int temp = n; 
+	for(n; n < 5; n++){  
+		for(int i=1 ; i<size[n] ;i ++){   
+			for(int j=0 ;j<30 ; j++){    
+				fprintf(out,"%c",map[n][i][j]);      
+						}    
+				fprintf(out,"\n");      
+						}    
+				fprintf(out,"\n");}
 n = temp;
 fclose(out);
 }
