@@ -409,6 +409,21 @@ int undo(int u)
 return u;
 }
 // 위치는 for문 중 n에 들어간 직후, 즉 y,x 순환이 시작하기 전
+void Get_Clock() // n번째 맵을 읽고 옴(위치에 따라 n-1을 int n으로 할 수도..)
+{
+   if(n == 0)
+      start = clock();
+   else // n == 1~4
+   {
+      end = clock();
+      diff = (end-start) / CLOCKS_PER_SEC;
+      rank[n-1] = diff; // n=1 일 경우, n=0 번째 맵의 시간을  기억해야 한다.
+
+      rank[5] += rank[n-1];
+
+      start =clock();
+   } // 저 값들을 중도에 세이브까지 해야 되다니...
+}
 
 				
 				
