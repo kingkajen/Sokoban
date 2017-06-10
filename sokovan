@@ -425,8 +425,6 @@ void Get_Clock() // n번째 맵을 읽고 옴(위치에 따라 n-1을 int n으�
    } // 저 값들을 중도에 세이브까지 해야 되다니...
 }
 
-				
-				
 int main(void)
 {
 	    int e,a;
