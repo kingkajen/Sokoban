@@ -387,6 +387,29 @@ int move(int a,int u)
 	f= finish();
 return u;
 }
+int undo(int u)
+{	
+	u--;
+	if( u > 0 ){	
+	for(int i=1;i<size[n];i++){
+		for(int j=0;j<30;j++){
+		map[n][i][j] = Undo[u][n][i][j];
+		}
+	}
+	}
+	else{
+	u = 6;
+	for(int i=1;i<size[n];i++){
+		for(int j=0;j<30;j++){
+		map[n][i][j] = Undo[u][n][i][j];
+		}
+	}
+	}
+	
+return u;
+}
+// 위치는 for문 중 n에 들어간 직후, 즉 y,x 순환이 시작하기 전
+
 				
 				
 int main(void)
